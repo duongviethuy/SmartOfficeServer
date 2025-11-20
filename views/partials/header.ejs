@@ -1,0 +1,53 @@
+<style>
+    header {
+        background-color: #5F002B;
+    }
+    header .logo {
+        padding: 10px;
+        width: 100%;
+    }
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    nav a {
+        color: white;
+        text-decoration: none;
+        font-size: 16px;
+        padding: 0px 15px;
+    }
+
+    header a:hover {
+        color: #5F002B;
+        text-decoration: none;
+        background-color: white;
+        padding: 20px 15px;
+    }
+
+    @media screen and (max-width: 576px) {
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 30px;
+        }
+    }
+
+</style>
+
+<header class="container-fluid">
+    <div class="row">
+        <div class="logo col-sm-2">
+            <img src="/img/LOGO.png"  class="logo" alt="">
+        </div>
+        <nav class="col-sm-10">
+            <a href="/">Home</a>
+            <a href="/employeeManagent">Employee Management</a>
+            <a href="/EmployeeRegister">Employee Register</a>
+            <a href="/worksdaycount">Works Day Count</a>
+            <a href="/log">Log</a>
+        </nav>
+    </div>
+</header>

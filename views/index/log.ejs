@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include ('../partials/head') -%> 
+</head>
+<style>
+    .log {
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+        flex-wrap: wrap;
+    }
+
+    .log-box {
+        margin: 20px;
+        width: 20%;
+        border: 2px solid var(--primary);
+        text-align: center;
+        box-shadow: 1px 1px 10px #5f002b4b;
+
+        border-radius: 2px;
+    }
+
+    .log-box:hover{
+        transform: scale(1.05);
+    }
+
+    .log-box:hover img{
+        transform: scale(1.1);
+    }
+
+    .log-box .time_in {
+        margin: 0;
+        padding: 10px 0;
+    }
+    .log-box img {
+        width: 100%;
+    }
+
+</style>
+<body>
+    <%- include ('../partials/header') -%> 
+    <div class="container  mb-5">
+        <div style="color: var(--primary);" class="text-center mt-3">
+            <h1>CAR LOG</h1>
+        </div>
+        <div class="log"></div>
+        <div class="text-center">
+            <button type="button" id="btn-rst">Reset Log</button>
+            <button type="button" id="btn-clear">Delete Log</button>
+
+        </div>
+    </div>
+    <%- include ('../partials/footer') -%> 
+    <script>
+        function formatDateToVietnamese(date) {
+            const day = date.getDate();
+            const month = date.getMonth() + 1; // Tháng trong JavaScript bắt đầu từ 0
+            const year = date.getFullYear();
+
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const seconds = date.getSeconds();
+
+            const formattedDay = day < 10 ? '0' + day : day;
+            const formattedMonth = month < 10 ? '0' + month : month;
+            const formattedHours = hours < 10 ? '0' + hours : hours;
+            const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
+            const formattedSeconds = seconds < 10 ? '0' + seconds : seconds;
+
+            return `${formattedDay}/${formattedMonth}/${year} ${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+        }
+        
+        $(document).ready(() => {
+            function get_log() {
+                $('.log').empty()
+                $.getJSON('api/car-log', data => {
+                    for(let i = 0; i < data.length ; i++) {
+                        let date = new Date(data[i]._doc.time_in)
+                        let logBox;
+                        logBox =  '<div class="log-box">'
+                        logBox += `<p class="time_in">Thời gian: <br/> ${formatDateToVietnamese(date)}<p>`
+                        logBox += `<img src="data:image/jpeg; base64, ${data[i]._doc.img_data}">`
+                        logBox += `<p class="fullName">Chủ xe: ${data[i].fullName}<p>`
+                        logBox += '</div>';
+                        $('.log').append(logBox)
+                    }
+                })
+            }
+            get_log()
+            $('#btn-rst').on('click', get_log)
+
+            $('#btn-clear').on('click', () => {
+                $.ajax({
+                    url: 'api/delete-car-log', // Thay đổi URL tương ứng của bạn
+                    type: 'DELETE',
+                    success: (res) => {
+                        alert(res)
+                        get_log()
+                    }
+                });
+            })
+
+        })
+    </script>
+</body>
+</html>

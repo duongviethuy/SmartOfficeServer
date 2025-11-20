@@ -1,0 +1,43 @@
+<style>
+    footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        height: 40px;
+        background-color: var(--primary);
+        color: #fff;
+        text-align: center;
+    }
+</style>
+<footer>
+    <div class="row m-0 pt-2">
+        <div class="col m-0">
+            <p>&copy;Copyright by Duong Viet Huy</p>
+        </div>
+        <div class="col text-align-right m-0">
+            <p id="clock">Thời gian hiện tại: </p>
+        </div>
+
+    </div>
+</footer>
+<script>
+    $(document).ready(()=> {
+        function updateClock() {
+            var currentTime = new Date();
+            var hours = currentTime.getHours();
+            var minutes = currentTime.getMinutes();
+            var seconds = currentTime.getSeconds();
+
+            // Định dạng thời gian
+            var timeFormat = (hours < 10 ? "0" : "") + hours + ":" +
+                        (minutes < 10 ? "0" : "") + minutes + ":" +
+                        (seconds < 10 ? "0" : "") + seconds;
+
+            // Hiển thị thời gian trong phần tử có ID là "clock"
+            $('#clock').text('Time: ' + timeFormat);
+        }   
+        setInterval(updateClock, 1000)
+
+    })
+
+</script>

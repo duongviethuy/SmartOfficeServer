@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include ('../partials/head') -%> 
+</head>
+<style>
+    .input-form {
+        display: flex;
+        flex-direction: column;
+        max-width: 100%;
+        margin: auto;
+        align-items: center;
+    }
+
+    .input-form label {
+        margin-top: 10px;
+        width: 100%;
+        color: var(--primary);
+        font-weight: bold;
+    }
+
+    .input-form input{
+        height: 40px;
+        border: 1px solid var(--primary);
+        border-radius: 2px;
+        box-shadow: 1px 1px 1px var(--primary);
+        width: 100%;
+        padding: 5px;
+        color: var(--primary);
+    }
+
+    .input-form select{
+        height: 40px;
+        border: 1px solid var(--primary);
+        border-radius: 2px;
+        box-shadow: 1px 1px 1px var(--primary);
+        width: 100%;
+        padding: 5px;
+        color: var(--primary);
+    }
+
+    .input-form input:focus {
+        outline: none;
+    }
+    
+    .card-side {
+        width: 100%;
+        padding: 20px 40px;
+    }  
+
+    .box-card {
+        width: 100%;
+        border: 2px solid var(--primary);
+        border-radius: 2px;
+        box-shadow: 1px 1px 1px var(--primary);
+        text-align: center;
+    }
+
+    .box-card img {
+        margin-top: 20px;
+        width: 50%;
+    }
+    
+    #alert {
+        color: red;
+    }
+
+    #submit-btn:disabled, .form-submit:disabled {
+        background-color: brown;
+        opacity: 0.2;
+        cursor: none;
+
+    }
+
+    .card-status p {
+        color: red;
+    }
+
+</style>
+<body>
+    <%- include ('../partials/header') -%> 
+    <div class="container">
+        <div style="text-align: center; color: var(--primary);">
+            <h1>EMPLOYEE REGISTER</h1>
+        </div>
+        <div class="row">
+            <div class="col-md-7 input-form">
+                <label for="">Employee Image: </label>
+                <input type="file" name="" id="userIMG">   
+                <label for="">Employee ID: </label>
+                <input type="text" name="" id="userID">
+                <label for="">Full Name: </label>
+                <input type="text" name="" id="fullName">                         
+                <label for="">Postion: </label>
+                <select name="" class="select" id="postion">
+                    <option value="Staff" selected >Staff</option>
+                    <option value="Trưởng phòng">Trưởng phòng</option>
+                    <option value="Giám đốc">Giám đốc</option>
+                    <option value="Giám đốc">Kế toán</option>
+                </select>   
+                <label for="">Email: </label>
+                <input type="text" name="" id="email">   
+                <p id="alert" class="mt-3"><i></i></p>
+                <div class="text-center">
+                    <button class="form-submit">
+                        Next
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-5 card-side">
+                <div class="box-card">
+                    <img src="" id="previewImage" style="width: 50%;" alt="">
+                    <img class="card-icon" src="/img/logo.png" alt="">
+                    <div class="card-status">
+                        <p class="card-status-check mt-3"><i></i></p>
+                        <button class="mb-3" id="submit-btn" disabled>Submit</button>
+                    </div>
+                </div>
+
+                
+            </div>
+        </div>
+    </div>
+    <%- include ('../partials/footer') -%> 
+
+</body>
+<script>
+    $(document).ready(() => {
+        const userIMG = $('#userIMG') 
+        const previewImage = $('#previewImage');
+        var encodedIMG 
+
+        function encodeImageToBase64(f) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const base64String = e.target.result;                
+                encodedIMG = base64String
+            }
+            reader.readAsDataURL(f);
+        }
+
+        userIMG.change((e) => {
+            const file = e.target.files[0]
+            if(file) {
+                previewImage.attr('src', URL.createObjectURL(file));
+                encodeImageToBase64(file)
+            }
+        })
+
+        $('.form-submit').on('click', (e) => {
+            const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;              
+            let userID = $('#userID').val()
+            let fullName = $('#fullName').val()
+            let postion = $('#postion').val()
+            let email = $('#email').val()         
+
+            let err = 0 
+
+            if(!encodedIMG) {
+                $('#alert i').text('User Image is not valid !!!')  
+                err += 1;      
+                return;
+            }
+
+            if(userID === '' ) {
+                $('#alert i').text('Empoloyee ID is not valid !!!')  
+                err += 1;      
+                return;
+            }
+            
+            else {
+                $.getJSON('/api/checkUserID/' + userID, (data) => {
+                    if(data.exist) {
+                        $('#alert i').text('User ID already existed')  
+                        $('.form-submit').prop('disabled', false)
+
+                        err += 1;     
+                        return;
+
+                    }
+                })
+            }
+
+            if(fullName === '' ) {
+                $('#alert i').text('Full Name is not valid !!!')   
+                err += 1;      
+                return;
+
+            }
+
+            if(!emailRegex.test(email)) {
+                $('#alert i').text('Email is not valid !!!')
+                err += 1;    
+                return;
+
+            }           
+
+            if(err === 0) {
+                $('#alert i').text('Next Step, place your card on reader')   
+                $('.form-submit').prop('disabled', true)
+                
+                $.post('api/reqRegisterCard')  
+
+                let shouldContinue = true
+                
+                setInterval(() => {
+                    if(shouldContinue) {
+                        $.getJSON('api/cardID', (res) => {
+                        let data = res
+                        if(data.cardID === '') {                            
+                        }
+                        else {                      
+                            if (data.used === true) {
+                                $('.card-status-check i').text("Card is used, Press Try Again")
+                                $('.card-icon').attr('src', '/img/denied.png')
+                                $('.form-submit').prop('disabled', false)
+                                $('.form-submit').text('Try again')
+                            }
+                            else {
+                                console.log(data)      
+                                $('#submit-btn').prop('disabled', false)
+                                $('.card-icon').attr('src', '/img/check.png')
+                                $('.card-status-check i').text("Card is valid, press SUBMIT")                                
+                                shouldContinue = false
+                                $('#submit-btn').on('click', (e) => {     
+                                    let sendData = {
+                                        'userIMG': encodedIMG,
+                                        'userID' : userID,
+                                        'fullName': fullName,
+                                        'position': postion,
+                                        'email': email,
+                                        'cardID': data.cardID
+                                    } 
+                                    $.post('api/addEmployee', sendData, (response) => {
+                                        alert(response)
+                                        location.reload()
+                                    })
+                                })
+                            }
+                        }
+                    })
+                    }
+                }, 500)
+
+                
+            }
+
+
+        })
+    })
+    
+</script>
+</html>

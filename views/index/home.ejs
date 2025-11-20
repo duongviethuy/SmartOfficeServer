@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include ('../partials/head') -%> 
+</head>
+<style>
+
+    .parking-slot {        
+        background-color: white;
+        border: 2px solid var(--primary);
+        height: 250px;
+        width: 100%;
+        margin: 20px 0px;
+    }
+
+    .left-side {
+        margin-top: 20px;
+        border: 2px solid var(--primary);
+        padding: 0px 20px;
+    }
+
+    .right-side {
+        margin-top: 20px;
+        border: 2px solid var(--primary);
+        padding: 0px 20px;
+    }
+    
+    #img-car{
+        width: 100%;
+        
+    }
+
+    .temp-hum {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+    }
+
+    .parking-slot-head {
+        justify-content: center;
+        display: flex;
+        align-items: center;
+        height: 20%;
+        background-color: white;
+        border-bottom: 2px solid var(--primary);
+        text-transform: uppercase;
+        font-weight: bolder;
+    }
+    .parking-slot-body {
+        height: 60%;
+        text-transform: uppercase;
+        font-weight: bolder;
+    }
+
+    .parking-slot-footer {
+        height: 20%;
+        background-color: white;
+        border-top: 2px solid var(--primary);
+        justify-content: center;
+        
+        display: flex;
+        align-items: center;
+    }
+
+    .free-slot {
+        background-image: url('/img/check.png');
+        background-size: 40%;
+        background-repeat: no-repeat;
+        background-position: center;
+        
+    }
+
+    .busy-slot {
+        background-image: url('/img/denied.png');
+        background-size: 40%;
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+
+
+    
+</style>
+<body>
+    <%- include ('../partials/header') -%> 
+    <div style="margin-bottom: 60px;" class="container">
+        <div class="row mb-5">
+            <div class="col-md-8 text-center parking-status left-side">
+                <h2 style="color: var(--primary); text-transform: uppercase" class="mt-2 mb-0">Thông tin vị trí</h2>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="parking-slot" id="slot-1">
+                            <div class="parking-slot-head">Vị trí 1</div>
+                            <div class="parking-slot-body"></div>
+                            <div class="parking-slot-footer">Vị trí trống</div>
+
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="parking-slot" id="slot-2">
+                            <div class="parking-slot-head">Vị trí 2</div>
+                            <div class="parking-slot-body"></div>
+                            <div class="parking-slot-footer">Vị trí trống</div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="parking-slot" id="slot-3">
+                            <div class="parking-slot-head">Vị trí 3</div>
+                            <div class="parking-slot-body"></div>
+                            <div class="parking-slot-footer">Vị trí trống</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="parking-slot" id="slot-4">
+                            <div class="parking-slot-head">Vị trí 4</div>
+                            <div class="parking-slot-body"></div>
+                            <div class="parking-slot-footer">Vị trí trống</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 p-2  right-side text-center">
+                <h4 style="color: var(--primary);" class="mt-2 mb-2">Hình ảnh xe vừa ra/vào</h4>
+                <img id="img-car" src="/img/LOGO.png" alt="">
+                <p class="m-2" id="Employee-name">Tên nhân viên: </p>
+                <h4 style="color: var(--primary);" class="mt-3 mb-2">Tình trạng bãi xe</h4>
+                <div class="temp-hum">
+                    <p><img width="40px" src="/img/celsius.png" alt=""> <p id="temp">Nhiệt độ:  </p> </p>
+                    <p><img width="40px" src="/img/humidity.png" alt=""> <p id="hum">Độ ẩm: </p> </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <%- include ('../partials/footer') -%> 
+    <script>       
+        $(document).ready(()=> {
+            
+            setInterval(()=> {
+                $.getJSON('api/officeStatus', data => {
+                    let freeSlot = [0, 0, 0, 0]
+                    let freeSlotQuery
+                    freeSlotQuery =  data.FreeSlot         
+
+                    freeSlotQuery.forEach(element => {
+                        freeSlot[element - 1] = 1
+                    })
+                    freeSlot.forEach((isFree, index) => {
+                        if(isFree === 1) {
+                            $('#slot-' + Number(index+1) + ' .parking-slot-body').addClass('free-slot')
+                            $('#slot-' + Number(index+1) + ' .parking-slot-body').removeClass('busy-slot')
+                            $('#slot-' + Number(index+1) + ' .parking-slot-footer').text('Vị trí trống')
+                        }
+                        else {
+                            $('#slot-' + Number(index+1)+ ' .parking-slot-body').removeClass('free-slot')
+                            $('#slot-' + Number(index+1)+ ' .parking-slot-body').addClass('busy-slot')
+                            $('#slot-' + Number(index+1) + ' .parking-slot-footer').text('Vị trí đã có xe')
+
+                        }
+                    })                    
+
+                    $('#temp').html('Nhiệt độ: ' + data.Temp + '&#8451;')
+                    $('#hum').html('Độ ẩm: ' + data.Hum + '%')                    
+                })
+
+                $.getJSON('api/recentCar', data => {
+                    if(data) {
+                        if(data.img_data !== undefined) {
+                            $('#img-car').attr('src', "data:image/jpeg; base64," + data.img_data)
+                            $('#Employee-name').text('Tên nhân viên: ' + data.user) 
+                        }
+                        else {}
+                    }
+                })
+            }, 1000)
+        })
+    </script>
+</body>
+</html>

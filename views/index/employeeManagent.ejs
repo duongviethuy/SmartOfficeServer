@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include ('../partials/head') -%> 
+</head>
+<style>
+    .checkinRow {
+        background-color: rgba(232, 231, 231, 0.512);
+        border: 1px solid gray;
+        margin: 5px 0px;
+        padding: 5px 0px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+    }
+
+
+    .checkinRow:hover {
+        background-color: rgb(232, 231, 231);
+        transform: scale(1.005);
+    }
+
+    .img-emp{
+        width: 90px;
+        height: 120px;
+        border-radius: 10px;
+        box-shadow: 1px 0px 5px grey;
+    }
+</style>
+
+<body>
+    <%- include ('../partials/header') -%> 
+    <div class="container-fluid mt-2 mb-5">
+        <div class="text-center my-2 " style="color: var(--primary);">
+            <h1 class="checkin-date">CHECK IN</h1>
+        </div>
+        <div class="row mt-2">            
+            <div class="leftside col-md-6">
+                <div class="text-center">
+                    <h3 style="color: var(--primary);">EMPLOYEE IS NOT CHECK IN TODAY</h3>
+                </div>       
+                <div class="notComingRows">
+                    
+                </div>
+            </div>
+            <div class="rightside col-md-6">
+                <div class="text-center">
+                    <h3 style="color: var(--primary);">EMPLOYEE IS WORKING</h3>
+                </div>                
+                <div class="checkinRows">
+                    
+                </div>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-6">
+
+            </div>
+            <div class="col-md-6">
+                <div class="text-center">
+                    <h3 style="color: var(--primary);">EMPLOYEE CAME OUT</h3>
+                </div>      
+                <div class="checkoutRows">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <%- include ('../partials/footer') -%> 
+
+</body>
+<script>    
+    
+    function NowtoYY_MM_DD () {
+        var currentDate = new Date()
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1; // Tháng bắt đầu từ 0, nên cộng thêm 1
+        const day = currentDate.getDate();
+        return year + '-' + month + '-' + day
+    }
+
+    $(document).ready(() => {
+        $('.checkin-date').text('CHECK IN LIST ON TODAY: ' + NowtoYY_MM_DD () )
+        $('.employeeRows').empty()
+            $.getJSON('api/workDate/' + NowtoYY_MM_DD(), (data) => {
+            let employees = data.employee
+            employees.forEach(employee => {
+                if(employee.checkout_time === null || employee.checkout_time === '') {
+                    if(employee.checkin_time !== null) {
+                        $.getJSON('api/checkUserID/'+ employee.userID, (data) => {                     
+                            let employeeRow= '<div class="row checkinRow">'
+                            employeeRow += `<div class="col text-center"><img class="img-emp" src="${data.userIMG}" alt=""></div>`
+                            employeeRow += `<div class="col">Full Name: ${data.fullName}</div>`
+                            employeeRow += `<div class="col">Postion : ${data.postion}</div>`
+                            employeeRow += `<div class="col">Check in: ${new Date(employee.checkin_time).toLocaleTimeString()}</div>` 
+                            employeeRow += '</div>';
+                            $('.checkinRows').append(employeeRow)
+                        })                        
+                    }
+                    if(employee.checkin_time === null) {
+                        $.getJSON('api/checkUserID/'+ employee.userID, (data) => {                     
+                            let employeeRow= '<div class="row checkinRow">'
+                            employeeRow += `<div class="col text-center"><img class="img-emp" src="${data.userIMG}" alt=""></div>`
+                            employeeRow += `<div class="col">Full Name: ${data.fullName}</div>`
+                            employeeRow += `<div class="col">Postion : ${data.postion}</div>`
+                            employeeRow += '</div>';
+                            $('.notComingRows').append(employeeRow)
+                        })       
+                    }
+                }
+                else {
+                    $.getJSON('api/checkUserID/'+ employee.userID, (data) => {                     
+                        let employeeRow= '<div class="row checkinRow">'
+                        employeeRow += `<div class="col text-center"><img class="img-emp" src="${data.userIMG}" alt=""></div>`
+                        employeeRow += `<div class="col">Full Name: ${data.fullName}</div>`
+                        employeeRow += `<div class="col">Postion : ${data.postion}</div>`
+                        employeeRow += `<div class="col">Check in: ${new Date(employee.checkin_time).toLocaleTimeString()}</div>` 
+                        employeeRow += `<div class="col">Check out: ${new Date(employee.checkout_time).toLocaleTimeString()}</div>` 
+                        employeeRow += '</div>';
+                        $('.checkoutRows').append(employeeRow)
+                    })    
+                }
+            });
+                
+            })
+    })
+</script>
+</html>

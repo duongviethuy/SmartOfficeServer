@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include ('../partials/head') -%> 
+</head>
+<style>
+    .employeeRow {
+        background-color: rgba(232, 231, 231, 0.512);
+        border: 1px solid gray;
+        margin: 10px 0px;
+        padding: 5px 0px;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+    }
+
+
+    .employeeRow:hover {
+        background-color: rgb(232, 231, 231);
+        transform: scale(1.005);
+    }
+
+    .img-emp{
+        width: 90px;
+        height: 120px;
+        border-radius: 10px;
+        box-shadow: 1px 0px 5px grey;
+    }
+
+    .querydate_submit{
+        height: 50px;
+    }
+
+    #querydate {
+        height: 50px;
+        width: 300px;
+
+    }
+
+    .progress-container {
+        width: 100%;
+        background-color: rgb(132, 132, 132);
+        height: 20px;
+        margin-bottom: 5px;
+    }
+
+    .progress-bar {
+        height: 20px;
+        background-color: var(--primary);
+        text-align: center;
+        line-height: 30px;
+        color: white;
+    }
+
+</style>
+<body>
+    <%- include ('../partials/header') -%> 
+    <div class="container">
+        <div class="row">
+            <div class="col-md">
+                <div class="text-center">
+                    <h2 style="color: var(--primary);"> WORK TIME COUNT BY DAY</h2>
+                    <h6>Select date: </h6> 
+                    <select name="" id="querydate">
+                        <option value="">Select a date to count</option>
+                    </select>
+                    <button class="querydate_submit">Go!</button>
+                </div>
+                <div>
+                    <div class="employeeRows"></div>        
+    
+
+                </div>
+            </div>            
+        </div>
+    </div>
+    <%- include ('../partials/footer') -%> 
+
+</body>
+<script>
+    function toYY_MM_DD (date) {
+        var currentDate = new Date(date)
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1; // Tháng bắt đầu từ 0, nên cộng thêm 1
+        const day = currentDate.getDate();
+        return year + '-' + month + '-' + day
+    }
+    
+    function countHours(time_start, time_stop) {
+        const startDate = new Date(time_start);
+        const endDate = new Date(time_stop);
+        const timeDifference = endDate - startDate;
+        const hoursDifference = timeDifference / (1000 * 60 * 60);
+        return hoursDifference
+    }
+
+
+    function toHaM(hours) {
+        // Làm tròn xuống để lấy phần nguyên giờ
+        const fullHours = Math.floor(hours);
+
+        // Tính phần thập phân và chuyển đổi thành phút
+        const remainingMinutes = Math.round((hours - fullHours) * 60);
+
+        return fullHours + ' hour(s) ' + remainingMinutes + ' minute(s)'
+    }
+
+    $(document).ready(() => {
+        var checkinlist
+        $.getJSON('api/getallcheckinlist', async (data) =>{
+            checkinlist = data
+            checkinlist.map(checkindate => {                
+                $('#querydate').append(`
+                    <option value='${toYY_MM_DD(checkindate.date)}'>${new Date (checkindate.date).toDateString()}</option>
+                `)
+            })
+
+        })
+        $('.querydate_submit').on('click', (e) => {
+            $('.employeeRows').empty()
+            let querydate = $('#querydate').val()
+            if(querydate !== '') {
+                $.getJSON('api/workDate/' + querydate, (data) => {
+                    data.employee.forEach(emp => {
+                        $.getJSON('api/checkUserID/' + emp.userID, (user) => {
+                            let employeeRow= '<div class="row employeeRow">'
+                            employeeRow += `<div class="col text-center"><img class="img-emp" src="${user.userIMG}" alt=""></div>`
+                            employeeRow += `<div class="col">Full Name: ${user.fullName}</div>`
+                            employeeRow += `<div class="col">Postion : ${user.postion}</div>`
+                            if(emp.checkin_time != undefined || emp.checkin_time != null) {
+                                employeeRow += `<div class="col">Check in : ${new Date(emp.checkin_time).toLocaleTimeString()}</div>`
+                                employeeRow += `<div class="col">Check out : ${new Date(emp.checkout_time).toLocaleTimeString()}</div>`
+                                let width = (countHours(emp.checkin_time, emp.checkout_time)/8)*100
+                                employeeRow += `<div class="col"><div class="progress-container"><div style="width:${width}%;" class="progress-bar"><span>${width.toFixed(1)}%</span></div></div>
+                                    Work times: <br/> ${toHaM(countHours(emp.checkin_time, emp.checkout_time))} 
+                                </div>`                                
+                            }
+                            else {
+                                employeeRow += `<div class="col">Employee didn't check in this day</div>`
+                            }
+                            employeeRow += '</div>';
+                            $('.employeeRows').append(employeeRow)
+                        })
+                    })
+                })
+            }
+        })
+    })
+</script>
+</html>
